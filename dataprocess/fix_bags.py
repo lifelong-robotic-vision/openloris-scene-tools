@@ -22,11 +22,15 @@ def main():
         help='go through specified bags without real processing')
     parser.add_argument('-v', '--verbose', action='store_true', \
         help='print bag info')
+    parser.set_defaults(recursive=False, replace=False, dry_run=False, verbose=False)
 
     parser.add_argument('--fix-odom-twist', action='store_true', \
         help='fix the incorrect linear velocities (non-zero y values) on the /odom topic')
-
-    parser.set_defaults(recursive=False, replace=False, dry_run=False, verbose=False, fix_odom_twist=True)
+    parser.add_argument('--fix-imu-info', action='store_true', \
+        help='fix the format and values on /{d400,t265}/{accel,gyro}/imu_info topics')
+    parser.add_argument('--fix-all', action='store_true', \
+        help='fix all known issues (recommended)')
+    parser.set_defaults(fix_odom_twist=False, fix_imu_info=False, fix_all=False)
 
     args, left = parser.parse_known_args()
     infiles = []
@@ -49,11 +53,23 @@ def main():
         print('  ' + sys.argv[0] + ' openloris/office/')
         print('  ' + sys.argv[0] + ' -r openloris/')
 
+    if args.fix_all:
+        args.fix_odom_twist = True
+        args.fix_imu_info = True
+
+    if args.fix_imu_info:
+        try:
+            from realsense2_camera.msg import IMUInfo
+        except ImportError:
+            print('--fix-imu-info is specified, but cannot import realsense2_camera.msg.IMUInfo')
+            print('Please install realsense-ros and source its setup.bash properly')
+            exit()
+
     if not os.path.exists(args.outfolder):
         os.mkdir(args.outfolder)
-    for infile in infiles:
+    for fileid, infile in enumerate(infiles):
         with rosbag.Bag(infile) as inbag:
-            print('-' * 21 + ' Input: %s ' % infile + '-' * (40 - len(infile)))
+            print('- Input [%d/%d]: %s ' % (fileid, len(infiles), infile) + '-' * (60 - len(infile)))
             if args.verbose: print(inbag)
             if args.dry_run: continue
             total = inbag.get_message_count()
@@ -63,12 +79,14 @@ def main():
                 for topic,msg,t in inbag.read_messages():
                     if args.fix_odom_twist and topic == '/odom':
                         outbag.write(topic, fix_odom_twist(msg), t)
+                    if args.fix_imu_info and topic.endswith('/imu_info'):
+                        outbag.write(topic, fix_imu_info(msg, topic), t)
                     else:
                         outbag.write(topic, msg, t)
                     count += 1
                     if (count % 100 == 0 or count == total):
-                        print('processing %d / %d (%.0f%%)' % (count, total, float(count) / total * 100), end='\r')
-            print('\n' + '-' * 20 + ' Output: %s ' % outfile + '-' * (40 - len(outfile)))
+                        print('Processed %d / %d (%.0f%%)' % (count, total, float(count) / total * 100), end='\r')
+            print('\n Output [%d/%d]: %s ' % (fileid, len(infiles), outfile) + '-' * (60 - len(outfile)))
             if args.verbose:
                 with rosbag.Bag(outfile) as outbag:
                     print(outbag)
@@ -96,6 +114,47 @@ def fix_odom_twist(msg):
     linear.x = x_fixed
     linear.y = 0
     return msg
+
+def fix_imu_info(msg, topic):
+    # 1. convert format to the version defined in the system
+    from realsense2_camera.msg import IMUInfo
+    msg_new = IMUInfo()
+    if hasattr(msg_new, 'frame_id'):
+        if hasattr(msg, 'header'):
+            msg_new.frame_id = msg.header.frame_id
+        elif hasattr(msg, 'frame_id'):
+            msg_new.frame_id = msg.frame_id
+        else:
+            print(msg)
+            exit('Unknown message format on ' + topic)
+    elif hasattr(msg_new, 'header'):
+        if hasattr(msg, 'header'):
+            msg_new.header = msg.header
+        elif hasattr(msg, 'frame_id'):
+            msg_new.header.frame_id = msg.frame_id
+        else:
+            print(msg)
+            exit('Unknown message format on ' + topic)
+    else:
+        print(msg)
+        exit('Unsupported IMUInfo format -- check your realsense-ros version and submit an issue to OpenLORIS-Scene')
+    msg_new.data = msg.data
+    msg_new.noise_variances = msg.noise_variances
+    msg_new.bias_variances = msg.bias_variances
+
+    # 2. add values of D435 IMU variances (scaled from values of T265)
+    if msg_new.noise_variances[0] == 0:
+        if topic == '/d400/accel/imu_info':
+            noise = 0.00026780980988405645  # 6.695245247101411e-05 * 4
+            bias = 2.499999936844688e-05    # 9.999999747378752e-05 / 4
+        elif topic == '/d400/gyro/imu_info':
+            noise = 1.0296060281689279e-05  # 5.148030140844639e-06 * 2
+            bias = 2.499999993688107e-07    # 4.999999987376214e-07 / 2
+        else:
+            exit('Unknown im_info topic: ' + topic)
+        msg_new.noise_variances = [noise] * 3
+        msg_new.bias_variances = [bias] * 3
+    return msg_new
 
 if __name__ == '__main__':
     main()
