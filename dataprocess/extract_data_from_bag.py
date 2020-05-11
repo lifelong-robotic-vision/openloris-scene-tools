@@ -217,8 +217,6 @@ class Odom_GT_Creator():
             pose_cnt = 0
             for topic, msg, t in bag.read_messages():
                 if topic == "/odom":
-#		    print topic
-#		    print msg
                     odom[1, odom_cnt] = msg.pose.pose.position.x
                     odom[2, odom_cnt] = msg.pose.pose.position.y
                     odom[3, odom_cnt] = msg.pose.pose.position.z
@@ -235,8 +233,6 @@ class Odom_GT_Creator():
                     odom[0, odom_cnt] = msg.header.stamp.secs + msg.header.stamp.nsecs * pow(10, -9);
                     odom_cnt = odom_cnt + 1
                 if topic == "/gt":
-#		    print topic
-#		    print msg
                     pose[1, pose_cnt] = msg.transforms[0].transform.translation.x
                     pose[2, pose_cnt] = msg.transforms[0].transform.translation.y
                     pose[3, pose_cnt] = msg.transforms[0].transform.translation.z
@@ -247,8 +243,6 @@ class Odom_GT_Creator():
                     pose[0, pose_cnt] = msg.transforms[0].header.stamp.secs + msg.transforms[0].header.stamp.nsecs * pow(10, -9);
                     pose_cnt = pose_cnt + 1
                 if topic == "/tf_static":
-                    #print topic
-                    #print msg
                     pass
         odom = odom[:, odom[0].argsort()]
         pose = pose[:, pose[0].argsort()]
