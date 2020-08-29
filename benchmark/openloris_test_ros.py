@@ -87,19 +87,12 @@ def play_sequences(bags, topics, aided_reloc, scene, frame, pub_pose):
                 pub_pose.publish(init_pose)
                 logger.info('Published initial pose for the next sequence on %s' % (init_pose_topic))
             time.sleep(1)
-        #argv = ['rosbag', 'play', '-r', str(10)]
-        argv = ['rosbag', 'play']
-        #argv.append('--bags')
-        argv.append(bag)
-        argv.append('--topics')
-        for topic in topics:
-            argv.append(topic)
         print("seq: %d" % seq)
         print("aided_reloc: false")
         logger.info('Playing %s ...' % (bag))
         pose_count = 0
         current_pose = None
-        process = subprocess.Popen(argv, stdin=DEVNULL, stdout=DEVNULL)
+        process = subprocess.Popen(['rosbag', 'play', bag, '--topics'] + topics, stdin=DEVNULL, stdout=DEVNULL)
         previous_pose = None
         previous_count = 0
         while process.poll() == None:
@@ -110,7 +103,6 @@ def play_sequences(bags, topics, aided_reloc, scene, frame, pub_pose):
             time.sleep(1)
         time.sleep(1)
         logger.info('Got %d poses for %s' % (pose_count, bag.split('/')[-1]))
-        #rosbag.rosbag_main.play_cmd(argv)
         seq += 1
 
 def publish_msg(msg, pose):

@@ -8,15 +8,12 @@ import os
 import sys
 import numpy as np
 import csv
+import argparse
 
 class RGBDCreator():
     def __init__(self):
-        if len(sys.argv) != 3:
-            print ("Enter the path of *all.bag and the save_folder")
-            return
-        print ("extracting rgbd and imu from *all.bag")
-        folder = sys.argv[1]
-        save_folder = sys.argv[2] + "/"
+        print ("extracting rgbd and imu from " + args.inbag)
+        save_folder = args.outfolder + "/"
         self.bridge = CvBridge()
         if not os.path.isdir(save_folder + 'color/'):
             os.mkdir(save_folder + 'color/')
@@ -27,7 +24,7 @@ class RGBDCreator():
         timestr_1 = []
         timestr_2 = []
         timestr_3 = []
-        with rosbag.Bag(folder, 'r') as bag:
+        with rosbag.Bag(args.inbag, 'r') as bag:
             N_acc = bag.get_message_count('/d400/accel/sample')
             acc = np.zeros((4, N_acc))
             acc_cnt = 0
@@ -39,7 +36,7 @@ class RGBDCreator():
                     try:
                         cv_image = self.bridge.imgmsg_to_cv2(msg,"bgr8")
                     except CvBridgeError as e:
-                        print e
+                        print(e)
                     timestr = "%.6f" % msg.header.stamp.to_sec()
                     timestr_1.append(timestr)
                     image_name = timestr+ ".png"
@@ -49,7 +46,7 @@ class RGBDCreator():
                         msg.encoding = "mono16"
                         cv_image = self.bridge.imgmsg_to_cv2(msg,"mono16")
                     except CvBridgeError as e:
-                        print e
+                        print(e)
                     timestr = "%.6f" % msg.header.stamp.to_sec()
                     timestr_2.append(timestr)
                     image_name = timestr+ ".png"
@@ -59,7 +56,7 @@ class RGBDCreator():
                         msg.encoding = "mono16"
                         cv_image = self.bridge.imgmsg_to_cv2(msg,"mono16")
                     except CvBridgeError as e:
-                        print e
+                        print(e)
                     timestr = "%.6f" % msg.header.stamp.to_sec()
                     timestr_3.append(timestr)
                     image_name = timestr+ ".png"
@@ -114,12 +111,8 @@ class RGBDCreator():
 
 class FisheyeCreator():
     def __init__(self):
-        if len(sys.argv) != 3:
-            print ("Enter the path of *all.bag and the save_folder")
-            return
-        print ("extracting fisheyes and imu from *all.bag")
-        folder = sys.argv[1]
-        save_folder = sys.argv[2] + "/"
+        print ("extracting fisheyes and imu from " + args.inbag)
+        save_folder = args.outfolder + "/"
         self.bridge = CvBridge()
         if not os.path.isdir(save_folder + 'fisheye1/'):
             os.mkdir(save_folder + 'fisheye1/')
@@ -127,7 +120,7 @@ class FisheyeCreator():
             os.mkdir(save_folder + 'fisheye2/')
         timestr_1 = []
         timestr_2 = []
-        with rosbag.Bag(folder, 'r') as bag:
+        with rosbag.Bag(args.inbag, 'r') as bag:
             N_acc = bag.get_message_count('/t265/accel/sample')
             acc = np.zeros((4, N_acc))
             acc_cnt = 0
@@ -140,7 +133,7 @@ class FisheyeCreator():
                         msg.encoding = "mono8"
                         cv_image = self.bridge.imgmsg_to_cv2(msg,"mono8")
                     except CvBridgeError as e:
-                        print e
+                        print(e)
                     timestr = "%.6f" % msg.header.stamp.to_sec()
                     timestr_1.append(timestr)
                     image_name = timestr+ ".png"
@@ -150,7 +143,7 @@ class FisheyeCreator():
                         msg.encoding = "mono8"
                         cv_image = self.bridge.imgmsg_to_cv2(msg, "mono8")
                     except CvBridgeError as e:
-                        print e
+                        print(e)
                     timestr = "%.6f" % msg.header.stamp.to_sec()
                     timestr_2.append(timestr)
                     image_name = timestr+ ".png"
@@ -201,14 +194,10 @@ class FisheyeCreator():
 
 class Odom_GT_Creator():
     def __init__(self):
-        if len(sys.argv) != 3:
-            print ("Enter the path of *all.bag and the save_folder")
-            return
-        print ("extracting odom and ground truth from *all.bag")
-        folder = sys.argv[1]
-        save_folder = sys.argv[2] + "/"
+        print ("extracting odom and ground truth from " + args.inbag)
+        save_folder = args.outfolder + "/"
 
-        with rosbag.Bag(folder, 'r') as bag:
+        with rosbag.Bag(args.inbag, 'r') as bag:
             N_odom = bag.get_message_count('/odom')
             odom = np.zeros((14, N_odom))
             odom_cnt = 0
@@ -269,6 +258,12 @@ class Odom_GT_Creator():
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--inbag', type=str, default='office1-1.bag', \
+        help='input bag file')
+    parser.add_argument('-o', '--outfolder', type=str, default='office1-1', \
+        help='output folder')
+    args = parser.parse_args()
     try:
         rgbd_creator = RGBDCreator()
         fisheye_creator = FisheyeCreator()
