@@ -190,7 +190,11 @@ def main():
     #logger.info('Please check the above testing configurations. Correct? [Y/n]')
     #raw_input()
     # Parse config
-    config_file = sys.argv[1] if len(sys.argv) > 1 else 'test.yaml'
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-f', '--config', type=str, default='test.yaml', help='config file')
+    args = parser.parse_args()
+
+    config_file = args.config
     logger.info('config: %s', config_file)
     config = None
     with open(config_file) as cfile:
