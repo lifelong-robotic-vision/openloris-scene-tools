@@ -24,7 +24,7 @@ def main():
     tmax = config['end'] if 'end' in config else float('inf')
 
     if True:
-        tstart = get_start_time_from_rs_bag('record-d400.bag')
+        tstart = get_start_time(files[-1])
         with rosbag.Bag(infolder + '/' + files[0]) as refbag:
             tend = refbag.get_end_time()
         if (tmin != 0 and tmin < 1e9) or (tmax < 1e9): # relative time
@@ -35,9 +35,9 @@ def main():
         else:
             rmin = tmin - tstart if tmin != 0 else 0
             rmax = tmax - tstart
-        print 'Truncate from %f to %f / %f to %f (%f sec)' % \
-            (rmin, rmax, tmin, tmax, min([tmax, tend]) - max([tmin, tstart]))
-        print 'With bias %f: %f to %f' % (bias, tmin + bias, tmax + bias)
+        print('Truncate from %f to %f / %f to %f (%f sec)' % \
+            (rmin, rmax, tmin, tmax, min([tmax, tend]) - max([tmin, tstart])))
+        print('With bias %f: %f to %f' % (bias, tmin + bias, tmax + bias))
 
     for file in files:
         infile = infolder + '/' + file
@@ -52,10 +52,12 @@ def main():
             print ("------------------- Output: %s ------------------------------" % outfile)
             print (outbag)
 
-def get_start_time_from_rs_bag(file):
+def get_start_time(file):
     bag = rosbag.Bag(file)
     for topic, msg, t in bag.read_messages():
-        if hasattr(msg, 'header'):
+        if is_unix_time(t.to_sec()):
+            return t.to_sec()
+        elif hasattr(msg, 'header'):
             stamp = msg.header.stamp.to_sec()
             if is_unix_time(stamp):
                 return stamp
@@ -95,7 +97,7 @@ def filter(start, end, inbag, outbag, bias):
         # remove all notification messages, including Frame Corrupted
         elif is_rs_notification(topic):
             print ('Discarded following message on %s at t=%f' % (topic, t.to_sec()))
-            print msg
+            print (str(msg))
             continue
         # decide whether to keep realsense metadata according to corresponding data
         elif is_rs_metadata(topic):
@@ -115,15 +117,17 @@ def filter(start, end, inbag, outbag, bias):
             keep = True
         elif hasattr(msg,'header'):
             time = msg.header.stamp.to_sec()
+        elif hasattr(msg,'stamp'):  # rslidar_msgs/rslidarPacket
+            time = msg.stamp.to_sec()
         elif hasattr(msg, 'transforms') and len(msg.transforms) == 1:
             time = msg.transforms[0].header.stamp.to_sec()
         else:
-            print msg
+            print (str(msg))
             print ('Unsupported message type %s on topic %s' % (msg._type, topic))
             exit()
         if keep is None:
             if not is_unix_time(time):
-                print msg
+                print (str(msg))
                 print ('Invalid stamp %.9f on topic %s' % (time, topic))
                 exit()
             keep = (time >= start and time <= end)
@@ -154,6 +158,8 @@ def write_with_offset(outbag, topic, msg, t, offset_sec):
         stamp = 0
         if hasattr(msg, 'header'):
             msg.header.stamp = add_offset(msg.header.stamp, offset)
+        elif hasattr(msg, 'stamp'):
+            msg.stamp = add_offset(msg.stamp, offset)
         elif hasattr(msg, 'transforms'):
             for id,_ in enumerate(msg.transforms):
                 msg.transforms[id].header.stamp = add_offset(msg.transforms[id].header.stamp, offset)
@@ -171,7 +177,7 @@ def write_with_offset(outbag, topic, msg, t, offset_sec):
                 except ValueError:
                     pass
     except TypeError:
-        print msg
+        print (str(msg))
         print ('Cannot process above message: topic=%s, t=%.9f, offset=%.9f' % (topic, t.to_sec(), offset_sec))
         exit()
     else:

@@ -19,9 +19,9 @@ import cv_bridge
 
 #gt_source = 'mocap'
 gt_source = 'hector'
-#gt_source = 'gaussian'
+gt_source = 'gaussian'
 tf_source = 'segway'
-#tf_source = 'gaussian'
+tf_source = 'gaussian'
 if tf_source == 'segway': import segway_transforms as transform_data
 elif tf_source == 'gaussian': import gaussian_transforms as transform_data
 
@@ -39,7 +39,7 @@ def main():
             aligned_depth_filenames = []
         else:
             aligned_depth_filenames = sorted([s for s in os.listdir(aligned_depth_folder) if s.endswith('.png')])
-            print 'Found %d images in %s' % (len(aligned_depth_filenames), aligned_depth_folder)
+            print('Found %d images in %s' % (len(aligned_depth_filenames), aligned_depth_folder))
 
     with rosbag.Bag(infiles[0]) as refbag:
         tstart = Time.from_sec(refbag.get_start_time())
@@ -96,8 +96,10 @@ def main():
             image_buffers = {}
             exposure_buffers = {}
             for topic,msg,t in inbag.read_messages():
-                if topic == '/odom' or topic == '/scan':
+                if topic == '/odom' or topic == '/scan' or topic == '/rslidar_packets':
                     outbag.write(topic, msg, msg.header.stamp)
+                elif topic == '/rslidar_packets_difop':
+                    outbag.write(topic, msg, msg.stamp)
                 elif gt_source == 'hector' and topic == '/slam_out_pose':
                     base_pose = transform_pose_msg(msg, 'base_link', 'base_link')
                     base_pose.header.frame_id = 'gt_map'
@@ -171,7 +173,7 @@ def main():
                     outbag.write(imu_topics[topic][0], msg, msg.header.stamp)
 
             for topic in image_buffers:
-                if len(image_buffers[topic]) is not 0:
+                if len(image_buffers[topic]) != 0:
                     print ('Error: discarded %d images without exposure data on %s. This should not happen!' % len(image_buffers[topic]), topic)
 
     outbag.close()

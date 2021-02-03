@@ -29,13 +29,10 @@ def main():
         tt = [t - tstart for t in tt]
         plt.subplot(1,2,1)
         plt.plot(tx, ty)
-        plt.hold(True)
         plt.subplot(2,2,2)
         plt.plot(tt, tx, label='x')
-        plt.hold(True)
         plt.subplot(2,2,4)
         plt.plot(tt, ty, label='y')
-        plt.hold(True)
     plt.subplot(1,2,1)
     plt.legend(topics, loc='upper right')
     plt.show()
@@ -59,7 +56,7 @@ def msg_to_pose_values(msg):
         t = msg.transforms[0].transform.translation
         q = msg.transforms[0].transform.rotation
     else:
-        print msg
+        print (str(msg))
         exit('Unsupported msg type!')
     return [t.x, t.y, t.z, q.x, q.y, q.z, q.w]
 
@@ -78,9 +75,9 @@ def align_traj(ref_traj, target_traj, interpolation=True):
     rot,trans,trans_error = evaluate_ate.align(second_xyz, first_xyz)
     ate = numpy.sqrt(numpy.dot(trans_error,trans_error) / len(trans_error))
     numpy.set_printoptions(suppress=True, precision=12)
-    print rot
-    print trans
-    print 'ATE: %f (%d matches)' % (ate, len(matches))
+    print (rot)
+    print (trans)
+    print ('ATE: %f (%d matches)' % (ate, len(matches)))
     target_traj_trans = {t: (numpy.dot(rot, numpy.matrix(p[:3]).transpose()) + trans).ravel().tolist()[0] for t,p in target_traj.items()}
     return target_traj_trans
 

@@ -143,11 +143,11 @@ def parse_opencv_matrix():
     m = m_str.strip(' []').replace('\n', ' ').split(',')
     m = [float(v.strip()) for v in m]
     m = [m[0:4], m[4:8], m[8:12], m[12:]]
-    print m
+    print (m)
     t = [r[3] for r in m[:3]]
     q = tf.transformations.quaternion_from_matrix(m)
     print ('matrix => translation, quaternion:')
-    print t + list(q)
+    print (t + list(q))
 
 #parse_opencv_matrix()
 
@@ -164,10 +164,10 @@ def rotation_matrix_to_quaternion():
     r[1].append(0)
     r[2].append(0)
     r.append([0,0,0,1])
-    print r
+    print (r)
     q = tf.transformations.quaternion_from_matrix(r)
     print ('rotation => quaternion:')
-    print ', '.join(map(str, q))
+    print (', '.join(map(str, q)))
 
 #rotation_matrix_to_quaternion()
 
@@ -176,7 +176,7 @@ class TFParser(object):
     def __init__(self, tfs):
         for tf in tfs:
             if len(tf) is not 4 or len(tf[3]) is not 7:
-                print tf
+                print (tf)
                 exit('Invalid tf format')
             self.__tfs[(tf[0], tf[1], tf[2])] = tf[3]
 
@@ -206,7 +206,7 @@ def compare_tfs(tf1, tf2):
     t2 = tf2[:3, 3:]
     dist = np.linalg.norm(t1 - t2)
     angle,_,_ = tf.transformations.rotation_from_matrix(np.dot(np.linalg.inv(tf1), tf2))
-    print 'translation diff %f (m), rotation diff %f (deg)' % (dist, angle / np.pi * 180.)
+    print ('translation diff %f (m), rotation diff %f (deg)' % (dist, angle / np.pi * 180.))
 
 def verify_calibration():
     """
@@ -217,55 +217,55 @@ def verify_calibration():
     tfs = TFParser(original_tfs)
 
     t_fisheye_color_c = tfs.get_tf_matrix('kalibr', 't265_fisheye1', 'd400_color')
-    print '------------------------------------'
-    print 'T_fisheye_color from kalibr:'
-    print t_fisheye_color_c
+    print ('------------------------------------')
+    print ('T_fisheye_color from kalibr:')
+    print (t_fisheye_color_c)
     compare_tfs(t_fisheye_color_c, t_fisheye_color_c)
 
     t_fisheye_color_m = np.dot(np.dot(\
         tfs.get_tf_matrix_inverse('basalt', 't265_imu', 't265_fisheye1'), \
         tfs.get_tf_matrix('basalt', 't265_imu', 'marker')), \
         tfs.get_tf_matrix('rct', 'marker', 'd400_color'))
-    print '------------------------------------'
-    print 'T_fisheye_color from basalt+rct:'
-    print t_fisheye_color_m
+    print ('------------------------------------')
+    print ('T_fisheye_color from basalt+rct:')
+    print (t_fisheye_color_m)
     compare_tfs(t_fisheye_color_m, t_fisheye_color_c)
 
     t_fisheye_color_o = np.dot(tfs.get_tf_matrix_inverse('segway', 'base_link', 't265_fisheye1'), \
         tfs.get_tf_matrix('segway', 'base_link', 'd400_color'))
-    print '------------------------------------'
-    print 'T_fisheye_color from segway:'
-    print t_fisheye_color_o
+    print ('------------------------------------')
+    print ('T_fisheye_color from segway:')
+    print (t_fisheye_color_o)
     compare_tfs(t_fisheye_color_o, t_fisheye_color_c)
 
     t_fisheye_color_l = np.dot(tfs.get_tf_matrix_inverse('lcc', 'laser', 't265_fisheye1'), \
         tfs.get_tf_matrix('lcc', 'laser', 'd400_color'))
-    print '------------------------------------'
-    print 'T_fisheye_color from LaserCamCal:'
-    print t_fisheye_color_l
+    print ('------------------------------------')
+    print ('T_fisheye_color from LaserCamCal:')
+    print (t_fisheye_color_l)
     compare_tfs(t_fisheye_color_l, t_fisheye_color_c)
 
 
     t_fisheyes_r = tfs.get_tf_matrix('realsense', 't265_fisheye1', 't265_fisheye2')
     t_fisheyes_l = np.dot(tfs.get_tf_matrix_inverse('lcc', 'laser', 't265_fisheye1'), \
         tfs.get_tf_matrix('lcc', 'laser', 't265_fisheye2'))
-    print '------------------------------------'
-    print t_fisheyes_r
-    print 'T_fisheye1_2 from LaserCamCal:'
-    print t_fisheyes_l
+    print ('------------------------------------')
+    print (t_fisheyes_r)
+    print ('T_fisheye1_2 from LaserCamCal:')
+    print (t_fisheyes_l)
     compare_tfs(t_fisheyes_l, t_fisheyes_r)
 
 
     t_l1 = tfs.get_tf_matrix('lcc', 'laser', 'd400_color')
     t_l2 = tfs.get_tf_matrix('lcc', 'laser', 'd400_color_848')
-    print '------------------------------------'
-    print t_l1
-    print 'T_laser_color from LaserCamCal:'
-    print t_l2
+    print ('------------------------------------')
+    print (t_l1)
+    print ('T_laser_color from LaserCamCal:')
+    print (t_l2)
     compare_tfs(t_l1, t_l2)
-    
-    
-    
+
+
+
     tfs = tfs_to_tree(original_tfs)
     for t in tfs:
         #publish_tf(t[1], t[2], t[3])

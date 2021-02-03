@@ -1,4 +1,8 @@
 #!/usr/bin/env python2
+
+# Copyright (C) <2020> Intel Corporation
+# SPDX-License-Identifier: MIT
+
 """
 Fix known issues in the released ROS bags of the OpenLORIS-Scene datasets
 """
