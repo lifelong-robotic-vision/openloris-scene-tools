@@ -1,0 +1,5 @@
+# this file is for generating correct statistics
+scene: corridor
+frame: base_link
+seq: 2
+seq: 3
