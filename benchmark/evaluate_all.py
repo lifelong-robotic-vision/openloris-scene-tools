@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 import sys
 import argparse
 import os
@@ -14,7 +14,9 @@ matplotlib.rcParams['pdf.fonttype'] = 42
 matplotlib.rcParams['ps.fonttype'] = 42
 
 def get_ate_threshold(scene):
-    return 1.0 if scene in ['office'] else 3.0 if scene in ['home', 'cafe'] else 5.0
+    if args.ate_threshold == 0:
+        return 1.0 if scene in ['office'] else 3.0 if scene in ['home', 'cafe'] else 5.0
+    return args.ate_threshold
 
 def update_results(path, scenes):
     gt_dict = {}
@@ -43,11 +45,11 @@ def update_results(path, scenes):
                 scene = [s for s in scenes if s in info['scene']][0]
                 gts = copy.deepcopy(gt_dict[scene]['gts'])
                 gt_info = gt_dict[scene]['info']
-                evaluate.evaluate(sequences, info, gts, gt_info, get_ate_threshold(scene), args.aoe_threshold, args.max_pose_interval, args.reloc_score_factor, auto_scale)
             except Exception as ex:
                 print('Invalid result file')
                 print(ex)
             else:
+                evaluate.evaluate(sequences, info, gts, gt_info, get_ate_threshold(scene), args.aoe_threshold, args.max_pose_interval, args.reloc_score_factor, auto_scale)
                 for seq in sequences:
                     if scene in results[alg] and seq in results[alg][scene]:
                         exit('Multiple results found for %s %s-%d' % (alg, scene, seq))
@@ -75,10 +77,10 @@ def evaluate_all_per_seq(path, print_per_seq, print_per_scene, print_mean, latex
         pass
     elif 'lifelong' not in path:
         algorithms = ['orbslam2_t265', 'orbslam2_rgbd', 'ds-slam', 'dso', \
-            'vins_mono_color_imu_with_loop', 'vins_mono_fisheye_imu_with_loop', 'infinitam_aligned_depth', 'fast_mapping', \
+            'vins_mono_color_imu_with_loop', 'vins_mono_fisheye_imu_with_loop', 'infinitam_aligned_depth', \
             'efusion_aligned_depth', 'odom']
         alg_names = ['ORB_SLAM2 [16]\n(stereo fisheye)', 'ORB_SLAM2 [16]\n(RGB-D)', 'DS-SLAM [18]\n(RGB-D)', 'DSO [17]\n(RGB)', \
-            'VINS-Mono [19]\n(RGB+IMU)', 'VINS-Mono [19]\n(fisheye+IMU)', 'InfiniTAMv2 [20]\n(RGB-D)', 'fast_mapping\n(depth)', \
+            'VINS-Mono [19]\n(RGB+IMU)', 'VINS-Mono [19]\n(fisheye+IMU)', 'InfiniTAMv2 [20]\n(RGB-D)', \
             'ElasticFusion [21]\n(RGB-D)', 'odometry']
     else:
         algorithms = ['orbslam2_t265', 'maslam', 'ds-slam', \
@@ -91,7 +93,7 @@ def evaluate_all_per_seq(path, print_per_seq, print_per_scene, print_mean, latex
         gt_tmin = {}
         gt_tmax = {}
         current_position = 0
-        plt.hold(True)
+        #plt.hold(True)
         for scene in scenes:
             gt_file = 'data/gt_%s_1.txt' % scene
             gt_info, gts = evaluate.parse_input(gt_file)

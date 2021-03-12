@@ -31,7 +31,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# Requirements: 
+# Requirements:
 # sudo apt-get install python-argparse
 
 """
@@ -42,7 +42,8 @@ trajectory and the estimated trajectory.
 import sys
 import numpy
 import argparse
-import associate
+#import associate
+from tum_evaluate_tools import associate
 
 def umeyama_align(x, y, with_scale=True):
     """
@@ -56,7 +57,7 @@ def umeyama_align(x, y, with_scale=True):
     :return: r, t, c - rotation matrix, translation vector and scale factor
     """
     if x.shape != y.shape:
-        print x.shape, y.shape
+        print(x.shape, y.shape)
         raise RuntimeError("data matrices must have the same shape")
 
     # m = dimension, n = nr. of data points
@@ -111,7 +112,7 @@ def umeyama_align(x, y, with_scale=True):
         if err > 0.1:
             count_ex = count_ex + 1
             # print i
-    print count_ex, count
+    print(count_ex, count)
 
     trans_error = numpy.sqrt(numpy.sum(numpy.multiply(alignment_error, alignment_error), 0)).A[0]
 
@@ -119,21 +120,21 @@ def umeyama_align(x, y, with_scale=True):
 
 def align(model,data):
     """Align two trajectories using the method of Horn (closed-form).
-    
+
     Input:
     model -- first trajectory (3xn)
     data -- second trajectory (3xn)
-    
+
     Output:
     rot -- rotation matrix (3x3)
     trans -- translation vector (3x1)
     trans_error -- translational error per point (1xn)
-    
+
     """
     numpy.set_printoptions(precision=3,suppress=True)
     model_zerocentered = model - model.mean(1)
     data_zerocentered = data - data.mean(1)
-    
+
     W = numpy.zeros( (3,3) )
     for column in range(model.shape[1]):
         W += numpy.outer(model_zerocentered[:,column],data_zerocentered[:,column])
@@ -143,19 +144,19 @@ def align(model,data):
         S[2,2] = -1
     rot = U*S*Vh
     trans = data.mean(1) - rot * model.mean(1)
-    
+
     model_aligned = rot * model + trans
     alignment_error = model_aligned - data
-    
+
     trans_error = numpy.sqrt(numpy.sum(numpy.multiply(alignment_error,alignment_error),0)).A[0]
-        
+
     return rot,trans,trans_error
 
 def compose_transform_matrix(rot, trans, scale=1):
     M = numpy.identity(4)
     M[:3, :3] = rot
     M[:3, 3:] = trans
-    if scale is not 1:
+    if scale != 1:
         S = numpy.identity(4) * scale
         S[3, 3] = 1
         M = numpy.dot(M, S)
@@ -164,8 +165,8 @@ def compose_transform_matrix(rot, trans, scale=1):
 
 def plot_traj(ax,stamps,traj,style,color,label):
     """
-    Plot a trajectory using matplotlib. 
-    
+    Plot a trajectory using matplotlib.
+
     Input:
     ax -- the plot
     stamps -- time stamps (1xn)
@@ -173,9 +174,9 @@ def plot_traj(ax,stamps,traj,style,color,label):
     style -- line style
     color -- line color
     label -- plot legend
-    
+
     """
-    stamps.sort()
+    stamps = sorted(stamps)
     interval = numpy.median([s-t for s,t in zip(stamps[1:],stamps[:-1])])
     x = []
     y = []
@@ -192,12 +193,12 @@ def plot_traj(ax,stamps,traj,style,color,label):
         last= stamps[i]
     if len(x)>0:
         ax.plot(x,y,style,color=color,label=label)
-            
+
 
 if __name__=="__main__":
     # parse command line
     parser = argparse.ArgumentParser(description='''
-    This script computes the absolute trajectory error from the ground truth trajectory and the estimated trajectory. 
+    This script computes the absolute trajectory error from the ground truth trajectory and the estimated trajectory.
     ''')
     parser.add_argument('first_file', help='ground truth trajectory (format: timestamp tx ty tz qx qy qz qw)')
     parser.add_argument('second_file', help='estimated trajectory (format: timestamp tx ty tz qx qy qz qw)')
@@ -213,7 +214,7 @@ if __name__=="__main__":
     first_list = associate.read_file_list(args.first_file)
     second_list = associate.read_file_list(args.second_file)
 
-    matches = associate.associate(first_list, second_list,float(args.offset),float(args.max_difference))    
+    matches = associate.associate(first_list, second_list,float(args.offset),float(args.max_difference))
     if len(matches)<2:
         sys.exit("Couldn't find matching timestamp pairs between groundtruth and estimated trajectory! Did you choose the correct sequence?")
 
@@ -221,18 +222,16 @@ if __name__=="__main__":
     first_xyz = numpy.matrix([[float(value) for value in first_list[a][0:3]] for a,b in matches]).transpose()
     second_xyz = numpy.matrix([[float(value)*float(args.scale) for value in second_list[b][0:3]] for a,b in matches]).transpose()
     rot,trans,trans_error = align(second_xyz,first_xyz)
-    
+
     second_xyz_aligned = rot * second_xyz + trans
-    
-    first_stamps = first_list.keys()
-    first_stamps.sort()
+
+    first_stamps = sorted(first_list.keys())
     first_xyz_full = numpy.matrix([[float(value) for value in first_list[b][0:3]] for b in first_stamps]).transpose()
-    
-    second_stamps = second_list.keys()
-    second_stamps.sort()
+
+    second_stamps = sorted(second_list.keys())
     second_xyz_full = numpy.matrix([[float(value)*float(args.scale) for value in second_list[b][0:3]] for b in second_stamps]).transpose()
     second_xyz_full_aligned = rot * second_xyz_full + trans
-    
+
     if args.verbose:
         print ("compared_pose_pairs %d pairs"%(len(trans_error)))
 
@@ -244,12 +243,12 @@ if __name__=="__main__":
         print ("absolute_translational_error.max %f m"%numpy.max(trans_error))
     else:
         print ("%f"%numpy.sqrt(numpy.dot(trans_error,trans_error) / len(trans_error)))
-        
+
     if args.save_associations:
         file = open(args.save_associations,"w")
         file.write("\n".join(["%f %f %f %f %f %f %f %f"%(a,x1,y1,z1,b,x2,y2,z2) for (a,b),(x1,y1,z1),(x2,y2,z2) in zip(matches,first_xyz.transpose().A,second_xyz_aligned.transpose().A)]))
         file.close()
-        
+
     if args.save:
         file = open(args.save,"w")
         file.write("\n".join(["%f "%stamp+" ".join(["%f"%d for d in line]) for stamp,line in zip(second_stamps,second_xyz_full_aligned.transpose().A)]))
@@ -270,10 +269,10 @@ if __name__=="__main__":
         for (a,b),(x1,y1,z1),(x2,y2,z2) in zip(matches,first_xyz.transpose().A,second_xyz_aligned.transpose().A):
             ax.plot([x1,x2],[y1,y2],'-',color="red",label=label)
             label=""
-            
+
         ax.legend()
-            
+
         ax.set_xlabel('x [m]')
         ax.set_ylabel('y [m]')
         plt.savefig(args.plot,dpi=90)
-        
+

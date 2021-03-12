@@ -31,7 +31,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# Requirements: 
+# Requirements:
 # sudo apt-get install python-argparse
 
 """
@@ -49,31 +49,31 @@ import math
 
 def read_file_list(filename):
     """
-    Reads a trajectory from a text file. 
-    
+    Reads a trajectory from a text file.
+
     File format:
     The file format is "stamp d1 d2 d3 ...", where stamp denotes the time stamp (to be matched)
-    and "d1 d2 d3.." is arbitary data (e.g., a 3D position and 3D orientation) associated to this timestamp. 
-    
+    and "d1 d2 d3.." is arbitary data (e.g., a 3D position and 3D orientation) associated to this timestamp.
+
     Input:
     filename -- File name
-    
+
     Output:
     dict -- dictionary of (stamp,data) tuples
-    
+
     """
     file = open(filename)
     data = file.read()
-    lines = data.replace(","," ").replace("\t"," ").split("\n") 
+    lines = data.replace(","," ").replace("\t"," ").split("\n")
     list = [[float(v.strip()) for v in line.split(" ") if v.strip()!=""] for line in lines if len(line)>0 and line[0]!="#"]
     list = [(float(l[0]),l[1:]) for l in list if len(l)>1]
     return dict(list)
 
 def associate(first_list, second_list,offset,max_difference):
     """
-    Associate two dictionaries of (stamp,data). As the time stamps never match exactly, we aim 
+    Associate two dictionaries of (stamp,data). As the time stamps never match exactly, we aim
     to find the closest match for every input tuple.
-    
+
     Input:
     first_list -- first dictionary of (stamp,data) tuples
     second_list -- second dictionary of (stamp,data) tuples
@@ -82,24 +82,22 @@ def associate(first_list, second_list,offset,max_difference):
 
     Output:
     matches -- list of matched tuples ((stamp1,data1),(stamp2,data2))
-    
+
     """
     first_keys = first_list.keys()
     second_keys = second_list.keys()
-    potential_matches = [(abs(a - (b + offset)), a, b) 
-                         for a in first_keys 
-                         for b in second_keys 
+    potential_matches = [(abs(a - (b + offset)), a, b)
+                         for a in first_keys
+                         for b in second_keys
                          if abs(a - (b + offset)) < max_difference]
-    potential_matches.sort()
     matches = []
-    for diff, a, b in potential_matches:
+    for diff, a, b in sorted(potential_matches):
         if a in first_keys and b in second_keys:
             first_keys.remove(a)
             second_keys.remove(b)
             matches.append((a, b))
-    
-    matches.sort()
-    return matches
+
+    return sorted(matches)
 
 def slerp(q1, q2, w1, w2):
     q1_dot_q2 = q1[0]*q2[0] + q1[1]*q2[1] + q1[2]*q2[2] + q2[3]*q2[3]
@@ -123,10 +121,8 @@ def associate_with_interpolation(first_list, second_list, offset, max_difference
     """
     interpolated_first_list = {}
     matches = []
-    first_keys = first_list.keys()
-    second_keys = second_list.keys()
-    first_keys.sort()
-    second_keys.sort()
+    first_keys = sorted(first_list.keys())
+    second_keys = sorted(second_list.keys())
     idx1 = 0
     for i in range(len(second_keys)):
         key = second_keys[i] + offset
@@ -146,15 +142,14 @@ def associate_with_interpolation(first_list, second_list, offset, max_difference
             interpolated += slerp(x1[3:], x2[3:], w1, w2)
             interpolated_first_list.update({key: interpolated})
             matches.append((key, second_keys[i]))
-    matches.sort()
-    return matches, interpolated_first_list
+    return sorted(matches), interpolated_first_list
 
 
 if __name__ == '__main__':
-    
+
     # parse command line
     parser = argparse.ArgumentParser(description='''
-    This script takes two data files with timestamps and associates them   
+    This script takes two data files with timestamps and associates them
     ''')
     parser.add_argument('first_file', help='first text file (format: timestamp data)')
     parser.add_argument('second_file', help='second text file (format: timestamp data)')
@@ -166,7 +161,7 @@ if __name__ == '__main__':
     first_list = read_file_list(args.first_file)
     second_list = read_file_list(args.second_file)
 
-    matches = associate(first_list, second_list,float(args.offset),float(args.max_difference))    
+    matches = associate(first_list, second_list,float(args.offset),float(args.max_difference))
 
     if args.first_only:
         for a,b in matches:
@@ -174,5 +169,5 @@ if __name__ == '__main__':
     else:
         for a,b in matches:
             print("%f %s %f %s"%(a," ".join(first_list[a]),b-float(args.offset)," ".join(second_list[b])))
-            
-        
+
+

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 from __future__ import print_function
 import sys
 import argparse
@@ -6,7 +6,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import openloris_tf_data
-sys.path.append('../postprocess')
+sys.path.append('../dataprocess')
 from tum_evaluate_tools import associate
 from tum_evaluate_tools import evaluate_ate
 from tf import transformations
@@ -17,7 +17,7 @@ def parse_input(filename, remove_repeat=True):
     with open(filename) as fp:
         last_pose = None
         for line in fp:
-            if line.startswith('#') or len(line.strip()) is 0:
+            if line.startswith('#') or len(line.strip()) == 0:
                 continue
             elif line.startswith('seq:'):
                 try:
@@ -98,7 +98,7 @@ def transform_world_frame(sequences, gts, auto_scale):
         sequences[seq]['traj'] = traj_trans
     seq = min(sequences.keys())
     sequences[seq]['oe'] = {b: angle_diff_from_quaternions(ref_traj_interpolated[a][3:], sequences[seq]['traj'][b][3:]) for a,b in matches}
-    aoe = np.abs(np.array(sequences[seq]['oe'].values()))
+    aoe = np.abs(np.array(list(sequences[seq]['oe'].values())))
     sequences[seq]['aoe_rmse'] = np.sqrt(np.dot(aoe, aoe) / len(aoe)) if len(aoe) > 0 else float('nan')
     #print(sequences[seq]['oe'].values())
 
@@ -112,7 +112,7 @@ def calculate_ate(sequences, gts):
         ate = np.sqrt(np.sum(np.multiply(error, error), 0)).A[0]
         sequences[seq]['ate'] = {m[1]: e for m, e in zip(matches, ate)}
         sequences[seq]['oe'] = {b: angle_diff_from_quaternions(ref_traj_interpolated[a][3:], sequences[seq]['traj'][b][3:]) for a,b in matches}
-        aoe = np.abs(np.array(sequences[seq]['oe'].values()))
+        aoe = np.abs(np.array(list(sequences[seq]['oe'].values())))
         sequences[seq]['ate_rmse'] = np.sqrt(np.dot(ate, ate) / len(ate)) if len(ate) > 0 else float('nan')
         sequences[seq]['aoe_rmse'] = np.sqrt(np.dot(aoe, aoe) / len(aoe)) if len(aoe) > 0 else float('nan')
         sequences[seq]['ate_num'] = len(ate)
@@ -128,7 +128,7 @@ def calculate_correctness(sequences, gts, ate_threshold, aoe_threshold, max_pose
         sequences[seq]['c_ate_rmse'] = np.sqrt(np.dot(c_ate, c_ate) / len(c_ate)) if len(c_ate) > 0 else float('nan')
         sequences[seq]['c_aoe_rmse'] = np.sqrt(np.dot(c_oe, c_oe) / len(c_oe)) if len(c_oe) > 0 else float('nan')
         sequences[seq]['c_ate_num'] = len(c_ate)
-        if len(ate) is 0:
+        if len(ate) == 0:
             sequences[seq]['reloc_correct'] = False
             sequences[seq]['reloc_time'] = float('inf')
             sequences[seq]['reloc_score'] = 0
@@ -139,7 +139,7 @@ def calculate_correctness(sequences, gts, ate_threshold, aoe_threshold, max_pose
             continue
         t0 = min(ate.keys())
         tmin = min(gts[seq]['traj'].keys())
-        tmax = max(ate.keys() + gts[seq]['traj'].keys())
+        tmax = max(list(ate.keys()) + list(gts[seq]['traj'].keys()))
         gt = gts[seq]['traj']
 
         # re-localization metrics
