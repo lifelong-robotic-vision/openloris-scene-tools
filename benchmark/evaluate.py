@@ -180,7 +180,7 @@ def plot_all_traj(sequences, gts):
         tx = [traj[t][0] for t in tt]
         ty = [traj[t][1] for t in tt]
         ax.plot(tx, ty, '-r')
-        ax.hold(True)
+        #ax.hold(True)
         if len(tx) > 0:
             ax.plot(tx[0], ty[0], 'or')
         traj = gts[seq]['traj']
@@ -217,7 +217,7 @@ def evaluate(sequences, info, gts, gt_info, ate_threshold, aoe_threshold, max_po
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-g', '--gt-path', help='path to ground-truth files', type=str, default='data/')
+    parser.add_argument('-g', '--gt-path', help='path to ground-truth files', type=str, default=os.path.join(os.path.dirname(__file__), 'data'))
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-r', '--remove-repeated-pose', help='ignore repeated poses', dest='remove_repeat', action='store_true')
     group.add_argument('-k', '--keep-repeated-pose', help='keep repeated poses', dest='remove_repeat', action='store_false')
