@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 from __future__ import print_function
 import sys
+import os
 import argparse
 import math
 import numpy as np
 import matplotlib.pyplot as plt
 import openloris_tf_data
-sys.path.append('../dataprocess')
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'dataprocess'))
 from tum_evaluate_tools import associate
 from tum_evaluate_tools import evaluate_ate
 from tf import transformations
