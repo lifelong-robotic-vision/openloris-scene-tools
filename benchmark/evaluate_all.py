@@ -21,7 +21,7 @@ def get_ate_threshold(scene):
 def update_results(path, scenes):
     gt_dict = {}
     for scene in scenes:
-        gt_file = 'data/gt_%s_1.txt' % scene
+        gt_file = os.path.dirname(__file__) + '/data/gt_%s_1.txt' % scene
         gt_info, gts = evaluate.parse_input(gt_file)
         gt_dict.setdefault(scene, {})['gts'] = gts
         gt_dict[scene]['info'] = gt_info
