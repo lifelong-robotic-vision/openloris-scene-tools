@@ -1,0 +1,54 @@
+# configurations for openloris_test_ros
+
+# name of your algorithm
+algorithm: myslam
+
+# the topic your algorithm outputs poses, should be in format of PoseStamped
+pose_topic: /pose
+
+# target frame of poses from your algorithm
+# should be in: d400_color, d400_depth, d400_imu, t265_fisheye1, t265_fisheye2, t265_imu
+frame: d400_color
+
+# whether your algorithm needs aided re-localization
+# if true, the testing program will publish a PoseStamped message on /openloris/reset_pose before starting to play each sequence (except 1st one of each scene), which is the initial pose of the next sequence relative to the initial pose of the first sequence in this scene. The pose has been transformed to the frame you specified above.
+aided_reloc: false
+
+# whether your algorithms uses a GPU or not
+# if true, the testing program will report your GPU model
+use_gpu: false
+
+# topics to subscribe, please comment out those you do not need!
+input_topics:
+  - d400/color
+  - d400/aligned_depth_to_color
+#  - d400/accel
+#  - d400/gyro
+#  - t265/fisheye1
+#  - t265/fisheye2
+#  - t265/accel
+#  - t265/gyro
+#  - odom
+
+# scenes to test, you can set enable to false if you would exclude any from testing
+tests:
+  - scene: office
+    enable: true
+    sequences: 7
+    path: ../../openloris/office-1/bags
+  - scene: cafe
+    enable: true
+    sequences: 2
+    path: ../../openloris/cafe-1/bags
+  - scene: corridor
+    enable: true
+    sequences: 2
+    path: ../../openloris/corridor-1/bags
+  - scene: home
+    enable: true
+    sequences: 5
+    path: ../../openloris/home-1/bags
+  - scene: market
+    enable: true
+    sequences: 2
+    path: ../../openloris/market-1/bag
