@@ -1,10 +1,11 @@
+#!/usr/bin/env python
+
 from __future__ import print_function
 
 import argparse
 from collections import OrderedDict
 import glob
 import logging
-import pynvml
 import psutil
 #import rosbag
 import rospy
@@ -70,7 +71,7 @@ def play_sequences(bags, topics, aided_reloc, scene, frame, pub_pose):
     DEVNULL = open(os.devnull, 'r+b', 0)
     global pose_count, current_pose
     for bag in bags:
-        if seq is not 1:
+        if seq != 1:
             if aided_reloc:
                 init_pose = PoseStamped()
                 #p = get_init_pose(scene, seq, frame)
@@ -163,14 +164,23 @@ def generate_info(algorithm, topics, target_frame, use_gpu):
         cpu_model = cpu_info()[processor]['model name']
     info += 'CPU: %s\n' % (cpu_model)
     if use_gpu:
-        info += 'GPU:'
-        pynvml.nvmlInit()
-        deviceCount = pynvml.nvmlDeviceGetCount()
-        for i in range(deviceCount):
-            handle = pynvml.nvmlDeviceGetHandleByIndex(i)
-            gpu = pynvml.nvmlDeviceGetName(handle)
-            info += ' ' + gpu.decode('utf-8')
-        info += '\n'
+        try:
+            import pynvml
+            has_pynvml = True
+        except ModuleNotFoundError:
+            print("Install pynvml to get GPU info")
+            has_pynvml = False
+        if has_pynvml:
+            info += 'GPU:'
+            pynvml.nvmlInit()
+            deviceCount = pynvml.nvmlDeviceGetCount()
+            for i in range(deviceCount):
+                handle = pynvml.nvmlDeviceGetHandleByIndex(i)
+                gpu = pynvml.nvmlDeviceGetName(handle)
+                info += ' ' + gpu.decode('utf-8')
+            info += '\n'
+        else:
+            info += 'GPU: unable to detect; please install pynvml\n'
     mem_g = psutil.virtual_memory().total/1024/1024/1024
     info += "memory: %d GB\n" % mem_g
     return info
