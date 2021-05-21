@@ -1,4 +1,9 @@
 #!/usr/bin/env python2
+
+# Copyright (C) <2019> Intel Corporation
+# SPDX-License-Identifier: MIT
+# Author: Xuesong Shi
+
 from __future__ import print_function
 import sys
 import argparse

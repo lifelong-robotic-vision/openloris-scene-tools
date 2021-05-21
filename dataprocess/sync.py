@@ -1,4 +1,9 @@
 #!/usr/bin/env python2
+
+# Copyright (C) <2019> Intel Corporation
+# SPDX-License-Identifier: MIT
+# Author: Xuesong Shi
+
 """
 1. sync between topics
 2. add a bias to all unix stamps in the bag (optional)

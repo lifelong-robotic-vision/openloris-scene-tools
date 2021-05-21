@@ -1,4 +1,9 @@
 #!/usr/bin/env python2
+
+# Copyright (C) <2019> Intel Corporation
+# SPDX-License-Identifier: MIT
+# Author: Xuesong Shi
+
 from segway_transforms import TFParser, tf_values_to_matrix, tf_matrix_to_values
 import tf
 import numpy as np

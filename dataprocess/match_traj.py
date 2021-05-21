@@ -1,4 +1,9 @@
 #!/usr/bin/env python2
+
+# Copyright (C) <2019> Intel Corporation
+# SPDX-License-Identifier: MIT
+# Authors: Zhigang Wang; Xuesong Shi
+
 import rosbag
 import math
 import matplotlib.pyplot as plt

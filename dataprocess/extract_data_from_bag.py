@@ -1,4 +1,9 @@
 #!/usr/bin/python
+
+# Copyright (C) <2019-2021> Intel Corporation
+# SPDX-License-Identifier: MIT
+# Authors: Pengpeng Zhao; Xuesong Shi
+
 import rosbag
 import rospy
 import cv2

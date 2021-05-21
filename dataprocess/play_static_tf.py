@@ -1,4 +1,9 @@
 #!/usr/bin/env python2
+
+# Copyright (C) <2019> Intel Corporation
+# SPDX-License-Identifier: MIT
+# Author: Xuesong Shi
+
 import subprocess
 import tf
 import sys
@@ -110,9 +115,9 @@ def verify_calibration():
     print 'T_laser_color from LaserCamCal:'
     print t_l2
     compare_tfs(t_l1, t_l2)
-    
-    
-    
+
+
+
     tfs = tfs_to_tree(original_tfs)
     for t in tfs:
         #publish_tf(t[1], t[2], t[3])

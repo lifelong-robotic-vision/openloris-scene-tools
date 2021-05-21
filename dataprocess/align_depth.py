@@ -1,4 +1,9 @@
 #!/usr/bin/env python2
+
+# Copyright (C) <2019> Intel Corporation
+# SPDX-License-Identifier: MIT
+# Author: Xuesong Shi
+
 import argparse
 import pyrealsense2 as rs
 import numpy as np

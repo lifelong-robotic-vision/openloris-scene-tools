@@ -15,3 +15,4 @@ Note that:
 
 Please refer to the README of each toolset for their usages, and our [webpage](https://lifelong-robotic-vision.github.io/dataset/scene) for more information.
 
+**Acknowledgement:** We reuse the Python scrips from the [TUM RGB-D Benchmark](https://vision.in.tum.de/data/datasets/rgbd-dataset/tools) (Copyright (c) 2013, Juergen Sturm, TUM) for calculating ATE and RPE.

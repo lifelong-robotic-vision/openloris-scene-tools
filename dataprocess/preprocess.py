@@ -1,4 +1,9 @@
 #!/usr/bin/env python2
+
+# Copyright (C) <2019> Intel Corporation
+# SPDX-License-Identifier: MIT
+# Author: Xuesong Shi
+
 """
 1. convert gx odom to standard types and add tf
 2. convert mocap stamp to unix timestamp and merge the messages from tf
@@ -157,7 +162,7 @@ class TopicWriter(object):
         if key in self.__processed:
             return
         self.__processed.add(key)
-        if len(self.__sliding_window_msg) < self.__sliding_window_size:		
+        if len(self.__sliding_window_msg) < self.__sliding_window_size:
             self.__sliding_window_msg.append(msg)
             self.__sliding_window_t.append(t)
             self.__sliding_window_euler.append(msg)
@@ -166,7 +171,7 @@ class TopicWriter(object):
                 self.__write(self.__sliding_window_msg[0],self.__sliding_window_t[0])
                 self.__sliding_window_msg = self.__sliding_window_msg[1:] + [msg]
                 self.__sliding_window_t = self.__sliding_window_t[1:] + [t]
-                self.__sliding_window_euler = self.__sliding_window_euler[1:] + [msg]				
+                self.__sliding_window_euler = self.__sliding_window_euler[1:] + [msg]
     '''
     def __check(self, msg1, msg2, msg3):
         if msg3.header.stamp.to_sec() - msg2.header.stamp.to_sec() > self.__filter_max_interval or \
@@ -297,7 +302,7 @@ def tf_to_pose(tf_msg):
     return pose_msg
 
 def gxPose2d_to_tf(msg,t,outbag,frame_id,child_frame_id,offset):
-                str_gx=[x.split(":") for x in str(msg).split("\n")]				
+                str_gx=[x.split(":") for x in str(msg).split("\n")]
                 br = TransformStamped()
                 br.transform.translation=Point(float(str_gx[1][1]),float(str_gx[2][1]),0)
                 br.transform.rotation=Quaternion(*tf.transformations.quaternion_from_euler(0,0,float(str_gx[3][1])))

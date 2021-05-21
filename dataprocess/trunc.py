@@ -1,4 +1,9 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+
+# Copyright (C) <2019> Intel Corporation
+# SPDX-License-Identifier: MIT
+# Author: Xuesong Shi
+
 """
 1. truncate bag by filtering out messages out of a given timestamp range
 2. add a bias to all unix stamps in the bag

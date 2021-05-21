@@ -1,4 +1,9 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+
+# Copyright (C) <2019-2021> Intel Corporation
+# SPDX-License-Identifier: MIT
+# Author: Xuesong Shi
+
 import subprocess
 import tf
 import numpy as np
