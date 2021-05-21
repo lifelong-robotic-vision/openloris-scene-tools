@@ -21,7 +21,7 @@ Then, there should be estimated poses for one or more sequences, with each pose 
     1560000084.282809258 0.000445 0.001231 -0.009124 0.000734 0.000177 0.000004 1.000000
     ...
 
-If your SLAM system supports ROS, you may use `openloris_test_ros.py` to help do the testing and save the results.
+If your SLAM system supports ROS, you may use [`openloris_test_ros.py`](https://github.com/lifelong-robotic-vision/openloris-scene-tools/blob/master/benchmark/openloris_test_ros.py) to help do the testing and save the results. (Config your data path in test.yaml and run `python openloris_test_ros.py -f test.yaml')
 
 ### Usage
 
